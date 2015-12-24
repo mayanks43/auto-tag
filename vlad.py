@@ -106,6 +106,7 @@ def vlad(centroids, signal):
     n_v = n_v/np.sqrt(n_v.dot(n_v))
     return n_v
 
+
 print "loading data"
 segments_pitches_1000 = pickle.load(open("/scratch/ms8599/MillionSongSubset/pitches1000", "rb"))
 segments_pitches = pickle.load(open("/scratch/ms8599/MillionSongSubset/pitches", "rb"))
@@ -121,6 +122,7 @@ vocab_pitches = build_set(segments_pitches_1000)
 vocab_timbre = build_set(segments_timbre_1000)
 print "took", time.time()-t1
 
+'''
 # get top 300 terms
 conn_artist_term = sqlite3.connect("/scratch/ms8599/MillionSongSubset/AdditionalFiles/subset_artist_term.db")
 q = "SELECT term,Count(artist_id) FROM artist_term GROUP BY term"
@@ -144,6 +146,7 @@ for i in range(1000, 10000):
             data_terms[count, top300.index(artist_terms[i][j])] = 1
     count += 1
 #print
+'''
 
 print "fitting kmeans to first 1000 songs"
 t1 = time.time()
@@ -174,7 +177,6 @@ print "timbre new shape", timbre_tf.shape
 print "took ", time.time()-t1
 '''
 
-
 print "Bag of features"
 t1 = time.time()
 pitches_tf = np.zeros((9000, k))
@@ -186,24 +188,27 @@ for i in range(1000, 10000):
     count += 1
 print "took ", time.time()-t1
 
-pickle.dump(pitches_tf, open("/scratch/ms8599/MillionSongSubset/pitches_tf", "wb"))
-pickle.dump(timbre_tf, open("/scratch/ms8599/MillionSongSubset/timbre_tf", "wb"))
-pickle.dump(data_terms, open("/scratch/ms8599/MillionSongSubset/data_terms", "wb"))
+pickle.dump(pitches_tf, open("/scratch/ms8599/MillionSongSubset/bof_pitches_200", "wb"))
+pickle.dump(timbre_tf, open("/scratch/ms8599/MillionSongSubset/bof_timbre_200", "wb"))
+#pickle.dump(data_terms, open("/scratch/ms8599/MillionSongSubset/data_terms", "wb"))
 
 #pitches_tf = pickle.load(open("/scratch/ms8599/MillionSongSubset/pitches_tf", "rb"))
 #timbre_tf = pickle.load(open("/scratch/ms8599/MillionSongSubset/timbre_tf", "rb"))
 #data_terms = pickle.load(open("/scratch/ms8599/MillionSongSubset/data_terms", "rb"))
 
+'''
 # All preprocessing done, time to fit classifier and predict
-train_size = 4500
+train_size = 4000
+validation_size = 500
 print "Baseline"
-avgnterm = 19
-prediction = np.zeros([9000-train_size, 300], dtype=int)
-for i in range(prediction.shape[0]):
-    # set top n terms to 1
-    for j in range(avgnterm):
-        prediction[i][j] = 1
-print precision_recall_fscore_support(data_terms[train_size:], prediction, average="micro")
+for avgnterm in range(1,300):
+    #avgnterm = 19
+    prediction = np.zeros([9000-train_size, 300], dtype=int)
+    for i in range(prediction.shape[0]):
+        # set top n terms to 1
+        for j in range(avgnterm):
+            prediction[i][j] = 1
+    print precision_recall_fscore_support(data_terms[train_size:], prediction, average="micro")
 print "Baseline done"
 
 tf = np.hstack([pitches_tf, timbre_tf])
@@ -233,3 +238,4 @@ for i in [1,10,20]:
     prediction =  clf.predict(tf[train_size:])
     print precision_recall_fscore_support(data_terms[train_size:], prediction, average="micro")
 print "random forest done"
+'''
